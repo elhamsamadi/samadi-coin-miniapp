@@ -5,58 +5,147 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Samadi Coin</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-*{box-sizing:border-box}
-body{
-margin:0;min-height:100vh;padding:25px 18px;
-background:linear-gradient(160deg,#07152f,#102d55);
-color:white;font-family:Arial,sans-serif;text-align:center
+body {
+  margin: 0;
+  background: #071426;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 25px 15px;
 }
-.logo{
-width:180px;height:180px;object-fit:contain;
-margin:20px auto 10px;display:block;
-filter:drop-shadow(0 0 15px #dca83b)
+.logo {
+  width: 190px;
+  max-width: 75%;
+  margin: 25px auto;
 }
-h1{color:#ffd66b;margin:10px}
-.subtitle{color:#c6d7ed}
-.balance{
-background:#183b65;border-radius:18px;
-padding:22px;margin:28px auto;max-width:350px
+h1 { color: #f4c75e; }
+.balance {
+  font-size: 34px;
+  color: #f4c75e;
+  margin: 25px;
 }
-.points{font-size:36px;color:#ffd66b;font-weight:bold}
-button{
-border:0;border-radius:14px;padding:17px 45px;
-font-size:20px;font-weight:bold;
-background:linear-gradient(90deg,#f7c85c,#e99a24);
-color:#102448
+button {
+  background: linear-gradient(135deg,#f6d36b,#b77a18);
+  color: #071426;
+  border: 0;
+  border-radius: 14px;
+  padding: 17px 55px;
+  font-size: 22px;
+  font-weight: bold;
 }
-.note{color:#b8c9df;font-size:13px}
+button:disabled { opacity: .5; }
+#status { margin: 20px; color: #b9d5f4; }
 </style>
 </head>
 <body>
 
 <img class="logo"
-src="Samadi%20Coin%3A%20Mine%2C%20Earn%2C%20Grow.png"
-alt="Samadi Coin Logo">
+src="./Samadi%20Coin%3A%20Mine%2C%20Earn%2C%20Grow.png"
+alt="Samadi Coin">
 
 <h1>Samadi Coin</h1>
-<p class="subtitle">Mine • Earn • Grow</p>
+<p>Mine • Earn • Grow</p>
 
-<div class="balance">
-<p>Your Balance</p>
-<div class="points" id="balance">0</div>
-<p>Virtual Points</p>
-</div>
+<div class="balance" id="balance">0</div>
+<p>YOUR BALANCE</p>
 
-<button onclick="startMining()">⚡ MINE</button>
-<p id="status">Press Mine to start your session</p>
-<p class="note">Mining sessions are planned for 24 hours.</p>
+<button id="mine">MINE</button>
+<p id="status">Connecting...</p>
+<p id="timer"></p>
 
 <script>
-function startMining(){
-document.getElementById("status").textContent=
-"Mining demo button is working!";
+const API_URL =
+"https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
+
+const SUPABASE_KEY = "sb_publishable_DMCqdVDC4viNjTQi8tiXHA_rB60p1Jf";
+
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+const balanceEl = document.getElementById("balance");
+const statusEl = document.getElementById("status");
+const timerEl = document.getElementById("timer");
+const mineBtn = document.getElementById("mine");
+
+let endTime = null;
+
+async function request(action) {
+  const initData = tg.initData;
+
+  if (!initData) {
+    statusEl.textContent = "Please open Samadi Coin inside Telegram.";
+    return;
+  }
+
+  mineBtn.disabled = true;
+  statusEl.textContent = "Loading...";
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY
+      },
+      body: JSON.stringify({
+        initData: initData,
+        action: action
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Request failed");
+    }
+
+    const data = result.user;
+    balanceEl.textContent = data.balance ?? 0;
+    endTime = data.ends_at ? new Date(data.ends_at) : null;
+
+    if (data.status === "started") {
+      statusEl.textContent = "Mining started! 24 hours.";
+    } else if (data.status === "active") {
+      statusEl.textContent = "Mining is active.";
+    } else {
+      statusEl.textContent = "Mining is inactive. Tap MINE to start.";
+    }
+
+    updateTimer();
+
+  } catch (error) {
+    statusEl.textContent = "Connection error. Please try again.";
+  } finally {
+    mineBtn.disabled = false;
+  }
 }
+
+function updateTimer() {
+  if (!endTime) {
+    timerEl.textContent = "";
+    return;
+  }
+
+  const remaining = Math.max(0, endTime - new Date());
+
+  if (remaining === 0) {
+    timerEl.textContent = "Mining session completed.";
+    return;
+  }
+
+  const hours = Math.floor(remaining / 3600000);
+  const minutes = Math.floor((remaining % 3600000) / 60000);
+
+  timerEl.textContent = `Time remaining: ${hours}h ${minutes}m`;
+}
+
+mineBtn.addEventListener("click", () => request("start"));
+
+request("status");
+setInterval(updateTimer, 30000);
 </script>
 
 </body>
