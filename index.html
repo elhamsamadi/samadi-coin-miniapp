@@ -3,150 +3,207 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Samadi Coin</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-body {
-  margin: 0;
-  background: #071426;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  padding: 25px 15px;
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;color:white;
+ font-family:Arial,sans-serif;
+ background:linear-gradient(rgba(3,12,30,.72),rgba(3,12,30,.92)),
+ url('./file_00000000894c8246bbd07c7ee3cd76f7.png') center/cover fixed;
+ padding:18px 15px 100px;text-align:center
 }
-.logo {
-  width: 190px;
-  max-width: 75%;
-  margin: 25px auto;
+header{padding:8px}
+.logo{width:125px;max-width:45%;margin:5px auto}
+h1{color:#f4c75e;margin:5px}
+.subtitle{color:#b9d5f4}
+.page{display:none;max-width:480px;margin:auto}
+.page.active{display:block}
+.card{
+ margin:18px auto;padding:22px 16px;
+ border-radius:20px;
+ background:rgba(5,20,45,.88);
+ border:1px solid rgba(91,174,255,.45);
+ box-shadow:0 0 22px rgba(0,130,255,.18)
 }
-h1 { color: #f4c75e; }
-.balance {
-  font-size: 34px;
-  color: #f4c75e;
-  margin: 25px;
+.balance{font-size:38px;font-weight:bold;color:#f4c75e;margin:16px}
+button{cursor:pointer}
+.minebtn{
+ background:linear-gradient(135deg,#f6d36b,#b77a18);
+ color:#071426;border:0;border-radius:14px;
+ padding:16px 48px;font-size:21px;font-weight:bold
 }
-button {
-  background: linear-gradient(135deg,#f6d36b,#b77a18);
-  color: #071426;
-  border: 0;
-  border-radius: 14px;
-  padding: 17px 55px;
-  font-size: 22px;
-  font-weight: bold;
+.minebtn:disabled{opacity:.5}
+#status,#homeStatus{color:#b9d5f4;line-height:1.5}
+#timer{color:#f4c75e;font-size:18px}
+.small{font-size:13px;color:#b9d5f4}
+.nav{
+ position:fixed;bottom:0;left:0;right:0;
+ display:flex;justify-content:space-around;
+ background:rgba(3,12,29,.97);
+ border-top:1px solid #315b85;
+ padding:9px 2px calc(9px + env(safe-area-inset-bottom));
 }
-button:disabled { opacity: .5; }
-#status { margin: 20px; color: #b9d5f4; }
+.nav button{
+ flex:1;border:0;background:transparent;
+ color:#b9d5f4;font-size:12px;padding:7px 2px
+}
+.nav button.active{color:#f4c75e}
+.nav span{display:block;font-size:21px;margin-bottom:5px}
 </style>
 </head>
 <body>
 
-<img class="logo"
-src="./Samadi%20Coin%3A%20Mine%2C%20Earn%2C%20Grow.png"
-alt="Samadi Coin">
-
+<header>
+<img class="logo" src="./Samadi%20Coin%3A%20Mine%2C%20Earn%2C%20Grow.png" alt="Samadi Coin">
 <h1>Samadi Coin</h1>
-<p>Mine • Earn • Grow</p>
+<p class="subtitle">MINE • EARN • GROW</p>
+</header>
 
-<div class="balance" id="balance">0</div>
-<p>YOUR BALANCE</p>
+<section id="home" class="page active">
+ <div class="card">
+  <p>YOUR TOTAL BALANCE</p>
+  <div class="balance" id="balance">0</div>
+  <p class="small">Virtual Samadi Points</p>
+  <p id="homeStatus">Connecting...</p>
+ </div>
+ <div class="card">
+  <h2>Welcome to Samadi Coin</h2>
+  <p>Mine • Earn • Grow</p>
+  <p class="small">Your digital mining journey starts here.</p>
+ </div>
+</section>
 
-<button id="mine">MINE</button>
-<p id="status">Connecting...</p>
-<p id="timer"></p>
+<section id="mining" class="page">
+ <div class="card">
+  <h2>⛏️ MINING</h2>
+  <div class="balance" id="mineBalance">0</div>
+  <p>10 points per hour</p>
+  <button class="minebtn" id="mine">MINE</button>
+  <p id="status">Connecting...</p>
+  <p id="timer"></p>
+ </div>
+</section>
+
+<section id="tasks" class="page">
+ <div class="card">
+  <h2>🎯 DAILY TASKS</h2>
+  <p>Tasks are coming soon.</p>
+  <p class="small">Task rewards are not active yet.</p>
+ </div>
+</section>
+
+<section id="invite" class="page">
+ <div class="card">
+  <h2>👥 INVITE FRIENDS</h2>
+  <p>Referral system is coming soon.</p>
+  <p class="small">Referral rewards are not active yet.</p>
+ </div>
+</section>
+
+<section id="wallet" class="page">
+ <div class="card">
+  <h2>💎 WALLET</h2>
+  <p>TON wallet integration is coming soon.</p>
+  <p class="small">Withdrawals are not active yet.</p>
+ </div>
+</section>
+
+<nav class="nav">
+ <button class="active" data-page="home"><span>🏠</span>Home</button>
+ <button data-page="mining"><span>⛏️</span>Mining</button>
+ <button data-page="tasks"><span>🎯</span>Tasks</button>
+ <button data-page="invite"><span>👥</span>Invite</button>
+ <button data-page="wallet"><span>💎</span>Wallet</button>
+</nav>
 
 <script>
-const API_URL =
-"https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
+const API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
+const SUPABASE_KEY="sb_publishable_DMCqdVDC4viNjTQi8tiXHA_rB60p1Jf";
 
-const SUPABASE_KEY = "sb_publishable_DMCqdVDC4viNjTQi8tiXHA_rB60p1Jf";
-
-const tg = window.Telegram.WebApp;
+const tg=window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-const balanceEl = document.getElementById("balance");
-const statusEl = document.getElementById("status");
-const timerEl = document.getElementById("timer");
-const mineBtn = document.getElementById("mine");
+const balanceEl=document.getElementById("balance");
+const mineBalanceEl=document.getElementById("mineBalance");
+const statusEl=document.getElementById("status");
+const homeStatusEl=document.getElementById("homeStatus");
+const timerEl=document.getElementById("timer");
+const mineBtn=document.getElementById("mine");
+let endTime=null;
 
-let endTime = null;
+document.querySelectorAll(".nav button").forEach(button=>{
+ button.addEventListener("click",()=>{
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+  button.classList.add("active");
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(button.dataset.page).classList.add("active");
+ });
+});
 
-async function request(action) {
-  const initData = tg.initData;
-
-  if (!initData) {
-    statusEl.textContent = "Please open Samadi Coin inside Telegram.";
-    return;
+async function request(action){
+ const initData=tg.initData;
+ if(!initData){
+  statusEl.textContent="Please open inside Telegram.";
+  homeStatusEl.textContent="Open inside Telegram.";
+  return;
+ }
+ mineBtn.disabled=true;
+ statusEl.textContent="Loading...";
+ try{
+  const response=await fetch(API_URL,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":SUPABASE_KEY
+   },
+   body:JSON.stringify({initData:initData,action:action})
+  });
+  const result=await response.json();
+  if(!response.ok||!result.success){
+   throw new Error(result.error||"Request failed");
   }
+  const data=result.user;
+  const balance=data.balance??0;
+  balanceEl.textContent=balance;
+  mineBalanceEl.textContent=balance;
+  endTime=data.ends_at?new Date(data.ends_at):null;
 
-  mineBtn.disabled = true;
-  statusEl.textContent = "Loading...";
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_KEY
-      },
-      body: JSON.stringify({
-        initData: initData,
-        action: action
-      })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.error || "Request failed");
-    }
-
-    const data = result.user;
-    balanceEl.textContent = data.balance ?? 0;
-    endTime = data.ends_at ? new Date(data.ends_at) : null;
-
-    if (data.status === "started") {
-      statusEl.textContent = "Mining started! 24 hours.";
-    } else if (data.status === "active") {
-      statusEl.textContent = "Mining is active.";
-    } else {
-      statusEl.textContent = "Mining is inactive. Tap MINE to start.";
-    }
-
-    updateTimer();
-
-  } catch (error) {
-    statusEl.textContent = "Connection error. Please try again.";
-  } finally {
-    mineBtn.disabled = false;
+  if(data.status==="started"){
+   statusEl.textContent="Mining started! 24 hours.";
+  }else if(data.status==="active"){
+   statusEl.textContent="Mining is active.";
+  }else{
+   statusEl.textContent="Mining is inactive. Tap MINE to start.";
   }
+  homeStatusEl.textContent=statusEl.textContent;
+  updateTimer();
+ }catch(error){
+  statusEl.textContent="Connection error. Please try again.";
+  homeStatusEl.textContent="Connection error.";
+ }finally{
+  mineBtn.disabled=false;
+ }
 }
 
-function updateTimer() {
-  if (!endTime) {
-    timerEl.textContent = "";
-    return;
-  }
-
-  const remaining = Math.max(0, endTime - new Date());
-
-  if (remaining === 0) {
-    timerEl.textContent = "Mining session completed.";
-    return;
-  }
-
-  const hours = Math.floor(remaining / 3600000);
-  const minutes = Math.floor((remaining % 3600000) / 60000);
-
-  timerEl.textContent = `Time remaining: ${hours}h ${minutes}m`;
+function updateTimer(){
+ if(!endTime){timerEl.textContent="";return;}
+ const remaining=Math.max(0,endTime-new Date());
+ if(remaining===0){
+  timerEl.textContent="Mining session completed.";
+  return;
+ }
+ const hours=Math.floor(remaining/3600000);
+ const minutes=Math.floor((remaining%3600000)/60000);
+ timerEl.textContent=`Time remaining: ${hours}h ${minutes}m`;
 }
 
-mineBtn.addEventListener("click", () => request("start"));
-
+mineBtn.addEventListener("click",()=>request("start"));
 request("status");
-setInterval(updateTimer, 30000);
+setInterval(updateTimer,30000);
 </script>
-
 </body>
 </html>
