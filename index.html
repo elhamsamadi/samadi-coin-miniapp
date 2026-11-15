@@ -95,13 +95,38 @@ button{cursor:pointer}
  </div>
 </section>
 
+
 <section id="invite" class="page">
- <div class="card">
-  <h2>👥 INVITE FRIENDS</h2>
-  <p>Referral system is coming soon.</p>
-  <p class="small">Referral rewards are not active yet.</p>
- </div>
+  <div class="card">
+    <h2>👥 INVITE FRIENDS</h2>
+    <p>Invite your friends and earn 100 points for each successful referral.</p>
+
+    <div class="card">
+      <h3>Your Referral Link</h3>
+      <input
+        id="referralLink"
+        type="text"
+        readonly
+        value="Loading..."
+        style="width:100%;padding:12px;border-radius:8px;margin:10px 0;"
+      >
+      <button onclick="copyReferralLink()" style="width:100%;">
+        📋 COPY INVITE LINK
+      </button>
+      <button onclick="shareReferralLink()" style="width:100%;margin-top:8px;">
+        📤 SHARE WITH FRIENDS
+      </button>
+    </div>
+
+    <p class="small">
+      🎁 Reward: 100 virtual points for each new friend who joins successfully.
+    </p>
+    <p class="small">
+      Referral points are virtual points and are not cash or withdrawable tokens.
+    </p>
+  </div>
 </section>
+
 
 <section id="wallet" class="page">
  <div class="card">
@@ -119,8 +144,10 @@ button{cursor:pointer}
  <button data-page="wallet"><span>💎</span>Wallet</button>
 </nav>
 
+
 <script>
 const API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
+const REFERRAL_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-referral";
 const SUPABASE_KEY="sb_publishable_DMCqdVDC4viNjTQi8tiXHA_rB60p1Jf";
 
 const tg=window.Telegram.WebApp;
@@ -201,7 +228,62 @@ function updateTimer(){
  timerEl.textContent=`Time remaining: ${hours}h ${minutes}m`;
 }
 
+function makeReferralLink(){
+ const user=tg.initDataUnsafe?.user;
+ const input=document.getElementById("referralLink");
+ if(!input)return;
+
+ if(!user){
+  input.value="Open inside Telegram to get your link";
+  return;
+ }
+
+ input.value=`https://t.me/Samadi_Coin_bot?startapp=ref_${user.id}`;
+}
+
+async function copyReferralLink(){
+ const input=document.getElementById("referralLink");
+ if(!input || !input.value.startsWith("https://"))return;
+
+ try{
+  await navigator.clipboard.writeText(input.value);
+  alert("Invite link copied!");
+ }catch(error){
+  input.select();
+  document.execCommand("copy");
+  alert("Invite link copied!");
+ }
+}
+
+function shareReferralLink(){
+ const input=document.getElementById("referralLink");
+ if(!input || !input.value.startsWith("https://"))return;
+
+ const message="Join Samadi Coin and earn virtual points with me!";
+ const url="https://t.me/share/url?url="+encodeURIComponent(input.value)+"&text="+encodeURIComponent(message);
+ tg.openTelegramLink(url);
+}
+
+async function registerReferral(){
+ if(!tg.initData)return;
+
+ try{
+  await fetch(REFERRAL_API_URL,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":SUPABASE_KEY
+   },
+   body:JSON.stringify({initData:tg.initData})
+  });
+ }catch(error){
+  console.error("Referral registration failed:",error);
+ }
+}
+
 mineBtn.addEventListener("click",()=>request("start"));
+makeReferralLink();
+registerReferral();
 request("status");
 setInterval(updateTimer,30000);
 </script>
