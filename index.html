@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Samadi Coin</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
 *{box-sizing:border-box}
 body{
@@ -52,8 +53,23 @@ button{cursor:pointer}
 }
 .nav button.active{color:#f4c75e}
 .nav span{display:block;font-size:21px;margin-bottom:5px}
+
+.referral-input{
+ width:100%;padding:13px;border-radius:10px;
+ border:1px solid #5485b5;background:#071426;
+ color:white;font-size:13px;margin:10px 0;
+}
+.referral-btn{
+ width:100%;padding:13px;border:0;border-radius:10px;
+ background:linear-gradient(135deg,#f6d36b,#b77a18);
+ color:#071426;font-weight:bold;margin-top:8px;
+}
+.stat-number{
+ font-size:30px;font-weight:bold;color:#f4c75e;margin:10px;
+}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -95,38 +111,48 @@ button{cursor:pointer}
  </div>
 </section>
 
-
 <section id="invite" class="page">
+ <div class="card">
+  <h2>👥 INVITE FRIENDS</h2>
+  <p>Invite friends and earn 100 points for each successful referral.</p>
+
   <div class="card">
-    <h2>👥 INVITE FRIENDS</h2>
-    <p>Invite your friends and earn 100 points for each successful referral.</p>
+   <h3>Your Referral Link</h3>
+   <input id="referralLink" class="referral-input"
+    type="text" readonly value="Loading...">
 
-    <div class="card">
-      <h3>Your Referral Link</h3>
-      <input
-        id="referralLink"
-        type="text"
-        readonly
-        value="Loading..."
-        style="width:100%;padding:12px;border-radius:8px;margin:10px 0;"
-      >
-      <button onclick="copyReferralLink()" style="width:100%;">
-        📋 COPY INVITE LINK
-      </button>
-      <button onclick="shareReferralLink()" style="width:100%;margin-top:8px;">
-        📤 SHARE WITH FRIENDS
-      </button>
-    </div>
+   <button class="referral-btn" onclick="copyReferralLink()">
+    📋 COPY INVITE LINK
+   </button>
 
-    <p class="small">
-      🎁 Reward: 100 virtual points for each new friend who joins successfully.
-    </p>
-    <p class="small">
-      Referral points are virtual points and are not cash or withdrawable tokens.
-    </p>
+   <button class="referral-btn" onclick="shareReferralLink()">
+    📤 SHARE WITH FRIENDS
+   </button>
   </div>
-</section>
 
+  <div class="card">
+   <h3>👥 INVITED FRIENDS</h3>
+   <div class="stat-number" id="invitedFriends">0</div>
+   <p class="small">Successful referrals</p>
+
+   <h3>🎁 TOTAL REFERRAL REWARDS</h3>
+   <div class="stat-number" id="totalRewards">0</div>
+   <p class="small">Virtual points earned from referrals</p>
+
+   <button class="referral-btn" onclick="loadReferralStats()">
+    🔄 REFRESH STATS
+   </button>
+   <p id="referralStatus" class="small">Loading referral stats...</p>
+  </div>
+
+  <p class="small">
+   Reward: 100 virtual points for each new successful referral.
+  </p>
+  <p class="small">
+   Points are virtual and are not cash or withdrawable tokens.
+  </p>
+ </div>
+</section>
 
 <section id="wallet" class="page">
  <div class="card">
@@ -144,7 +170,6 @@ button{cursor:pointer}
  <button data-page="wallet"><span>💎</span>Wallet</button>
 </nav>
 
-
 <script>
 const API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
 const REFERRAL_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-referral";
@@ -160,6 +185,7 @@ const statusEl=document.getElementById("status");
 const homeStatusEl=document.getElementById("homeStatus");
 const timerEl=document.getElementById("timer");
 const mineBtn=document.getElementById("mine");
+
 let endTime=null;
 
 document.querySelectorAll(".nav button").forEach(button=>{
@@ -168,18 +194,25 @@ document.querySelectorAll(".nav button").forEach(button=>{
   button.classList.add("active");
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(button.dataset.page).classList.add("active");
+
+  if(button.dataset.page==="invite"){
+   loadReferralStats();
+  }
  });
 });
 
 async function request(action){
  const initData=tg.initData;
+
  if(!initData){
   statusEl.textContent="Please open inside Telegram.";
   homeStatusEl.textContent="Open inside Telegram.";
   return;
  }
+
  mineBtn.disabled=true;
  statusEl.textContent="Loading...";
+
  try{
   const response=await fetch(API_URL,{
    method:"POST",
@@ -189,12 +222,16 @@ async function request(action){
    },
    body:JSON.stringify({initData:initData,action:action})
   });
+
   const result=await response.json();
+
   if(!response.ok||!result.success){
    throw new Error(result.error||"Request failed");
   }
+
   const data=result.user;
   const balance=data.balance??0;
+
   balanceEl.textContent=balance;
   mineBalanceEl.textContent=balance;
   endTime=data.ends_at?new Date(data.ends_at):null;
@@ -206,9 +243,12 @@ async function request(action){
   }else{
    statusEl.textContent="Mining is inactive. Tap MINE to start.";
   }
+
   homeStatusEl.textContent=statusEl.textContent;
   updateTimer();
+
  }catch(error){
+  console.error(error);
   statusEl.textContent="Connection error. Please try again.";
   homeStatusEl.textContent="Connection error.";
  }finally{
@@ -217,20 +257,28 @@ async function request(action){
 }
 
 function updateTimer(){
- if(!endTime){timerEl.textContent="";return;}
+ if(!endTime){
+  timerEl.textContent="";
+  return;
+ }
+
  const remaining=Math.max(0,endTime-new Date());
+
  if(remaining===0){
   timerEl.textContent="Mining session completed.";
   return;
  }
+
  const hours=Math.floor(remaining/3600000);
  const minutes=Math.floor((remaining%3600000)/60000);
+
  timerEl.textContent=`Time remaining: ${hours}h ${minutes}m`;
 }
 
 function makeReferralLink(){
  const user=tg.initDataUnsafe?.user;
  const input=document.getElementById("referralLink");
+
  if(!input)return;
 
  if(!user){
@@ -243,7 +291,8 @@ function makeReferralLink(){
 
 async function copyReferralLink(){
  const input=document.getElementById("referralLink");
- if(!input || !input.value.startsWith("https://"))return;
+
+ if(!input||!input.value.startsWith("https://"))return;
 
  try{
   await navigator.clipboard.writeText(input.value);
@@ -257,10 +306,14 @@ async function copyReferralLink(){
 
 function shareReferralLink(){
  const input=document.getElementById("referralLink");
- if(!input || !input.value.startsWith("https://"))return;
+
+ if(!input||!input.value.startsWith("https://"))return;
 
  const message="Join Samadi Coin and earn virtual points with me!";
- const url="https://t.me/share/url?url="+encodeURIComponent(input.value)+"&text="+encodeURIComponent(message);
+ const url="https://t.me/share/url?url="+
+  encodeURIComponent(input.value)+
+  "&text="+encodeURIComponent(message);
+
  tg.openTelegramLink(url);
 }
 
@@ -268,24 +321,73 @@ async function registerReferral(){
  if(!tg.initData)return;
 
  try{
-  await fetch(REFERRAL_API_URL,{
+  const response=await fetch(REFERRAL_API_URL,{
    method:"POST",
    headers:{
     "Content-Type":"application/json",
     "apikey":SUPABASE_KEY
    },
-   body:JSON.stringify({initData:tg.initData})
+   body:JSON.stringify({initData:tg.initData,action:"register"})
   });
+
+  const result=await response.json();
+
+  if(!response.ok){
+   console.error("Referral registration:",result);
+  }
  }catch(error){
   console.error("Referral registration failed:",error);
  }
 }
 
+async function loadReferralStats(){
+ const status=document.getElementById("referralStatus");
+
+ if(!tg.initData){
+  status.textContent="Please open inside Telegram.";
+  return;
+ }
+
+ status.textContent="Loading stats...";
+
+ try{
+  const response=await fetch(REFERRAL_API_URL,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":SUPABASE_KEY
+   },
+   body:JSON.stringify({initData:tg.initData,action:"stats"})
+  });
+
+  const result=await response.json();
+
+  if(!response.ok||!result.success){
+   throw new Error(result.error||"Could not load stats");
+  }
+
+  document.getElementById("invitedFriends").textContent=
+   result.stats.invitedFriends;
+
+  document.getElementById("totalRewards").textContent=
+   result.stats.totalRewards;
+
+  status.textContent="Referral stats updated.";
+
+ }catch(error){
+  console.error(error);
+  status.textContent="Could not load stats. Please try again.";
+ }
+}
+
 mineBtn.addEventListener("click",()=>request("start"));
+
 makeReferralLink();
 registerReferral();
 request("status");
+
 setInterval(updateTimer,30000);
 </script>
+
 </body>
 </html>
