@@ -141,7 +141,16 @@ button{cursor:pointer}
 
   <div class="card">
    <h3>📅 Daily Check-in</h3>
-   <p class="small">Daily check-in task will be available soon.</p>
+   <p class="small">Check in every day and earn virtual points.</p>
+   <p class="task-reward">+50 Points Daily</p>
+
+   <button class="task-btn" id="dailyCheckinBtn">
+    CLAIM DAILY REWARD
+   </button>
+
+   <p class="task-status" id="dailyCheckinStatus">
+    Claim your daily reward once every day.
+   </p>
   </div>
 
   <div class="card">
@@ -224,6 +233,8 @@ const REFERRAL_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/sa
 
 const TASK_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-join-group";
 
+const DAILY_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-daily-checkin";
+
 const GROUP_INVITE_LINK="https://t.me/+uQCOqXm1Eq9iZjE1";
 
 const SUPABASE_KEY="sb_publishable_DMCqdVDC4viNjTQi8tiXHA_rB60p1Jf";
@@ -242,6 +253,9 @@ const mineBtn=document.getElementById("mine");
 const joinGroupBtn=document.getElementById("joinGroupBtn");
 const checkGroupBtn=document.getElementById("checkGroupBtn");
 const groupTaskStatus=document.getElementById("groupTaskStatus");
+
+const dailyCheckinBtn=document.getElementById("dailyCheckinBtn");
+const dailyCheckinStatus=document.getElementById("dailyCheckinStatus");
 
 let endTime=null;
 
@@ -516,6 +530,71 @@ async function checkGroupMembership(){
    "Connection error. Please try again.";
  }finally{
   checkGroupBtn.disabled=false;
+ }
+}
+
+dailyCheckinBtn.addEventListener("click",dailyCheckin);
+
+async function dailyCheckin(){
+ if(!tg.initData){
+  dailyCheckinStatus.textContent="Please open inside Telegram.";
+  return;
+ }
+
+ dailyCheckinBtn.disabled=true;
+ dailyCheckinStatus.textContent="Checking daily reward...";
+
+ try{
+  const response=await fetch(DAILY_API_URL,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":SUPABASE_KEY
+   },
+   body:JSON.stringify({
+    initData:tg.initData
+   })
+  });
+
+  const result=await response.json();
+
+  if(!response.ok){
+   throw new Error(result.error||"Daily check-in failed");
+  }
+
+  if(result.success){
+   dailyCheckinStatus.textContent=
+    "Success! You received 50 virtual points today.";
+
+   await request("status");
+   return;
+  }
+
+  if(result.already_claimed ||
+     result.result?.reason==="already_claimed"){
+   dailyCheckinStatus.textContent=
+    "You have already claimed today's reward. Come back tomorrow.";
+   return;
+  }
+
+  if(result.result?.reason==="user_not_found"){
+   dailyCheckinStatus.textContent=
+    "User account not found. Please restart the app.";
+   return;
+  }
+
+  throw new Error(
+   result.error||
+   result.result?.reason||
+   "Could not claim daily reward."
+  );
+
+ }catch(error){
+  console.error("Daily check-in error:",error);
+  dailyCheckinStatus.textContent=
+   "Connection error. Please try again.";
+ }finally{
+  dailyCheckinBtn.disabled=false;
  }
 }
 
