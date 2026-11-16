@@ -67,6 +67,19 @@ button{cursor:pointer}
 .stat-number{
  font-size:30px;font-weight:bold;color:#f4c75e;margin:10px;
 }
+.task-btn{
+ width:100%;padding:14px;border:0;border-radius:10px;
+ background:linear-gradient(135deg,#f6d36b,#b77a18);
+ color:#071426;font-size:15px;font-weight:bold;margin-top:10px;
+}
+.task-btn:disabled{opacity:.5;cursor:not-allowed}
+.task-status{
+ color:#b9d5f4;font-size:13px;line-height:1.6;
+ margin-top:12px;min-height:20px
+}
+.task-reward{
+ color:#f4c75e;font-size:18px;font-weight:bold
+}
 </style>
 </head>
 
@@ -105,9 +118,43 @@ button{cursor:pointer}
 
 <section id="tasks" class="page">
  <div class="card">
-  <h2>🎯 DAILY TASKS</h2>
-  <p>Tasks are coming soon.</p>
-  <p class="small">Task rewards are not active yet.</p>
+  <h2>🎯 TASKS</h2>
+  <p class="small">Complete tasks and earn virtual points.</p>
+
+  <div class="card">
+   <h3>👥 Join Samadi Coin Support</h3>
+   <p class="small">Join our official Telegram group and verify your membership.</p>
+   <p class="task-reward">+100 Points</p>
+
+   <button class="task-btn" id="joinGroupBtn">
+    JOIN TELEGRAM GROUP
+   </button>
+
+   <button class="task-btn" id="checkGroupBtn">
+    CHECK MEMBERSHIP & CLAIM
+   </button>
+
+   <p class="task-status" id="groupTaskStatus">
+    Join the group first, then check your membership.
+   </p>
+  </div>
+
+  <div class="card">
+   <h3>📅 Daily Check-in</h3>
+   <p class="small">Daily check-in task will be available soon.</p>
+  </div>
+
+  <div class="card">
+   <h3>👥 Invite Friends</h3>
+   <p class="small">Invite friends and earn 100 points for each successful referral.</p>
+   <button class="task-btn" id="goInviteBtn">
+    GO TO INVITE
+   </button>
+  </div>
+
+  <p class="small">
+   All points are virtual. They are not cash or withdrawable tokens.
+  </p>
  </div>
 </section>
 
@@ -172,7 +219,13 @@ button{cursor:pointer}
 
 <script>
 const API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
+
 const REFERRAL_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-referral";
+
+const TASK_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-join-group";
+
+const GROUP_INVITE_LINK="https://t.me/+uQCOqXm1Eq9iZjE1";
+
 const SUPABASE_KEY="sb_publishable_DMCqdVDC4viNjTQi8tiXHA_rB60p1Jf";
 
 const tg=window.Telegram.WebApp;
@@ -186,12 +239,17 @@ const homeStatusEl=document.getElementById("homeStatus");
 const timerEl=document.getElementById("timer");
 const mineBtn=document.getElementById("mine");
 
+const joinGroupBtn=document.getElementById("joinGroupBtn");
+const checkGroupBtn=document.getElementById("checkGroupBtn");
+const groupTaskStatus=document.getElementById("groupTaskStatus");
+
 let endTime=null;
 
 document.querySelectorAll(".nav button").forEach(button=>{
  button.addEventListener("click",()=>{
   document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
   button.classList.add("active");
+
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(button.dataset.page).classList.add("active");
 
@@ -199,6 +257,16 @@ document.querySelectorAll(".nav button").forEach(button=>{
    loadReferralStats();
   }
  });
+});
+
+document.getElementById("goInviteBtn").addEventListener("click",()=>{
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+ document.querySelector('[data-page="invite"]').classList.add("active");
+
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById("invite").classList.add("active");
+
+ loadReferralStats();
 });
 
 async function request(action){
@@ -377,6 +445,77 @@ async function loadReferralStats(){
  }catch(error){
   console.error(error);
   status.textContent="Could not load stats. Please try again.";
+ }
+}
+
+joinGroupBtn.addEventListener("click",()=>{
+ tg.openTelegramLink(GROUP_INVITE_LINK);
+});
+
+checkGroupBtn.addEventListener("click",checkGroupMembership);
+
+async function checkGroupMembership(){
+ if(!tg.initData){
+  groupTaskStatus.textContent="Please open inside Telegram.";
+  return;
+ }
+
+ checkGroupBtn.disabled=true;
+ groupTaskStatus.textContent="Checking your group membership...";
+
+ try{
+  const response=await fetch(TASK_API_URL,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":SUPABASE_KEY
+   },
+   body:JSON.stringify({
+    initData:tg.initData
+   })
+  });
+
+  const result=await response.json();
+
+  if(!response.ok){
+   throw new Error(result.error||"Membership check failed");
+  }
+
+  if(result.success){
+   groupTaskStatus.textContent=
+    "Success! You received 100 virtual points.";
+
+   await request("status");
+   return;
+  }
+
+  if(result.already_claimed){
+   groupTaskStatus.textContent=
+    "You have already claimed this task reward.";
+
+   await request("status");
+   return;
+  }
+
+  if(result.reason==="not_member"){
+   groupTaskStatus.textContent=
+    "You are not a member yet. Join the group first, then check again.";
+   return;
+  }
+
+  if(result.error){
+   throw new Error(result.error);
+  }
+
+  groupTaskStatus.textContent=
+   "Membership could not be verified. Please try again.";
+
+ }catch(error){
+  console.error("Group task error:",error);
+  groupTaskStatus.textContent=
+   "Connection error. Please try again.";
+ }finally{
+  checkGroupBtn.disabled=false;
  }
 }
 
