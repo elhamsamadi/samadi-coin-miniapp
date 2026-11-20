@@ -1,611 +1,248 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Samadi Coin</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-<style>
-*{box-sizing:border-box}
-body{
- margin:0;min-height:100vh;color:white;
- font-family:Arial,sans-serif;
- background:linear-gradient(rgba(3,12,30,.72),rgba(3,12,30,.92)),
- url('./file_00000000894c8246bbd07c7ee3cd76f7.png') center/cover fixed;
- padding:18px 15px 100px;text-align:center
-}
-header{padding:8px}
-.logo{width:125px;max-width:45%;margin:5px auto}
-h1{color:#f4c75e;margin:5px}
-.subtitle{color:#b9d5f4}
-.page{display:none;max-width:480px;margin:auto}
-.page.active{display:block}
-.card{
- margin:18px auto;padding:22px 16px;
- border-radius:20px;
- background:rgba(5,20,45,.88);
- border:1px solid rgba(91,174,255,.45);
- box-shadow:0 0 22px rgba(0,130,255,.18)
-}
-.balance{font-size:38px;font-weight:bold;color:#f4c75e;margin:16px}
-button{cursor:pointer}
-.minebtn{
- background:linear-gradient(135deg,#f6d36b,#b77a18);
- color:#071426;border:0;border-radius:14px;
- padding:16px 48px;font-size:21px;font-weight:bold
-}
-.minebtn:disabled{opacity:.5}
-#status,#homeStatus{color:#b9d5f4;line-height:1.5}
-#timer{color:#f4c75e;font-size:18px}
-.small{font-size:13px;color:#b9d5f4}
-.nav{
- position:fixed;bottom:0;left:0;right:0;
- display:flex;justify-content:space-around;
- background:rgba(3,12,29,.97);
- border-top:1px solid #315b85;
- padding:9px 2px calc(9px + env(safe-area-inset-bottom));
-}
-.nav button{
- flex:1;border:0;background:transparent;
- color:#b9d5f4;font-size:12px;padding:7px 2px
-}
-.nav button.active{color:#f4c75e}
-.nav span{display:block;font-size:21px;margin-bottom:5px}
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
-.referral-input{
- width:100%;padding:13px;border-radius:10px;
- border:1px solid #5485b5;background:#071426;
- color:white;font-size:13px;margin:10px 0;
-}
-.referral-btn{
- width:100%;padding:13px;border:0;border-radius:10px;
- background:linear-gradient(135deg,#f6d36b,#b77a18);
- color:#071426;font-weight:bold;margin-top:8px;
-}
-.stat-number{
- font-size:30px;font-weight:bold;color:#f4c75e;margin:10px;
-}
-.task-btn{
- width:100%;padding:14px;border:0;border-radius:10px;
- background:linear-gradient(135deg,#f6d36b,#b77a18);
- color:#071426;font-size:15px;font-weight:bold;margin-top:10px;
-}
-.task-btn:disabled{opacity:.5;cursor:not-allowed}
-.task-status{
- color:#b9d5f4;font-size:13px;line-height:1.6;
- margin-top:12px;min-height:20px
-}
-.task-reward{
- color:#f4c75e;font-size:18px;font-weight:bold
-}
-</style>
-</head>
-
-<body>
-
-<header>
-<img class="logo" src="./Samadi%20Coin%3A%20Mine%2C%20Earn%2C%20Grow.png" alt="Samadi Coin">
-<h1>Samadi Coin</h1>
-<p class="subtitle">MINE • EARN • GROW</p>
-</header>
-
-<section id="home" class="page active">
- <div class="card">
-  <p>YOUR TOTAL BALANCE</p>
-  <div class="balance" id="balance">0</div>
-  <p class="small">Virtual Samadi Points</p>
-  <p id="homeStatus">Connecting...</p>
- </div>
- <div class="card">
-  <h2>Welcome to Samadi Coin</h2>
-  <p>Mine • Earn • Grow</p>
-  <p class="small">Your digital mining journey starts here.</p>
- </div>
-</section>
-
-<section id="mining" class="page">
- <div class="card">
-  <h2>⛏️ MINING</h2>
-  <div class="balance" id="mineBalance">0</div>
-  <p>50 points per hour</p>
-  <button class="minebtn" id="mine">MINE</button>
-  <p id="status">Connecting...</p>
-  <p id="timer"></p>
- </div>
-</section>
-
-<section id="tasks" class="page">
- <div class="card">
-  <h2>🎯 TASKS</h2>
-  <p class="small">Complete tasks and earn virtual points.</p>
-
-  <div class="card">
-   <h3>👥 Join Samadi Coin Support</h3>
-   <p class="small">Join our official Telegram group and verify your membership.</p>
-   <p class="task-reward">+100 Points</p>
-
-   <button class="task-btn" id="joinGroupBtn">
-    JOIN TELEGRAM GROUP
-   </button>
-
-   <button class="task-btn" id="checkGroupBtn">
-    CHECK MEMBERSHIP & CLAIM
-   </button>
-
-   <p class="task-status" id="groupTaskStatus">
-    Join the group first, then check your membership.
-   </p>
-  </div>
-
-  <div class="card">
-   <h3>📅 Daily Check-in</h3>
-   <p class="small">Check in every day and earn virtual points.</p>
-   <p class="task-reward">+50 Points Daily</p>
-
-   <button class="task-btn" id="dailyCheckinBtn">
-    CLAIM DAILY REWARD
-   </button>
-
-   <p class="task-status" id="dailyCheckinStatus">
-    Claim your daily reward once every day.
-   </p>
-  </div>
-
-  <div class="card">
-   <h3>👥 Invite Friends</h3>
-   <p class="small">Invite friends and earn 100 points for each successful referral.</p>
-   <button class="task-btn" id="goInviteBtn">
-    GO TO INVITE
-   </button>
-  </div>
-
-  <p class="small">
-   All points are virtual. They are not cash or withdrawable tokens.
-  </p>
- </div>
-</section>
-
-<section id="invite" class="page">
- <div class="card">
-  <h2>👥 INVITE FRIENDS</h2>
-  <p>Invite friends and earn 100 points for each successful referral.</p>
-
-  <div class="card">
-   <h3>Your Referral Link</h3>
-   <input id="referralLink" class="referral-input"
-    type="text" readonly value="Loading...">
-
-   <button class="referral-btn" onclick="copyReferralLink()">
-    📋 COPY INVITE LINK
-   </button>
-
-   <button class="referral-btn" onclick="shareReferralLink()">
-    📤 SHARE WITH FRIENDS
-   </button>
-  </div>
-
-  <div class="card">
-   <h3>👥 INVITED FRIENDS</h3>
-   <div class="stat-number" id="invitedFriends">0</div>
-   <p class="small">Successful referrals</p>
-
-   <h3>🎁 TOTAL REFERRAL REWARDS</h3>
-   <div class="stat-number" id="totalRewards">0</div>
-   <p class="small">Virtual points earned from referrals</p>
-
-   <button class="referral-btn" onclick="loadReferralStats()">
-    🔄 REFRESH STATS
-   </button>
-   <p id="referralStatus" class="small">Loading referral stats...</p>
-  </div>
-
-  <p class="small">
-   Reward: 100 virtual points for each new successful referral.
-  </p>
-  <p class="small">
-   Points are virtual and are not cash or withdrawable tokens.
-  </p>
- </div>
-</section>
-
-<section id="wallet" class="page">
- <div class="card">
-  <h2>💎 WALLET</h2>
-  <p>TON wallet integration is coming soon.</p>
-  <p class="small">Withdrawals are not active yet.</p>
- </div>
-</section>
-
-<nav class="nav">
- <button class="active" data-page="home"><span>🏠</span>Home</button>
- <button data-page="mining"><span>⛏️</span>Mining</button>
- <button data-page="tasks"><span>🎯</span>Tasks</button>
- <button data-page="invite"><span>👥</span>Invite</button>
- <button data-page="wallet"><span>💎</span>Wallet</button>
-</nav>
-
-<script>
-const API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
-
-const REFERRAL_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-referral";
-
-const TASK_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-join-group";
-
-const DAILY_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-daily-checkin";
-
-const GROUP_INVITE_LINK="https://t.me/+uQCOqXm1Eq9iZjE1";
-
-const SUPABASE_KEY="sb_publishable_DMCqdVDC4viNjTQi8tiXHA_rB60p1Jf";
-
-const tg=window.Telegram.WebApp;
-tg.ready();
-tg.expand();
-
-const balanceEl=document.getElementById("balance");
-const mineBalanceEl=document.getElementById("mineBalance");
-const statusEl=document.getElementById("status");
-const homeStatusEl=document.getElementById("homeStatus");
-const timerEl=document.getElementById("timer");
-const mineBtn=document.getElementById("mine");
-
-const joinGroupBtn=document.getElementById("joinGroupBtn");
-const checkGroupBtn=document.getElementById("checkGroupBtn");
-const groupTaskStatus=document.getElementById("groupTaskStatus");
-
-const dailyCheckinBtn=document.getElementById("dailyCheckinBtn");
-const dailyCheckinStatus=document.getElementById("dailyCheckinStatus");
-
-let endTime=null;
-
-document.querySelectorAll(".nav button").forEach(button=>{
- button.addEventListener("click",()=>{
-  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
-  button.classList.add("active");
-
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(button.dataset.page).classList.add("active");
-
-  if(button.dataset.page==="invite"){
-   loadReferralStats();
-  }
- });
-});
-
-document.getElementById("goInviteBtn").addEventListener("click",()=>{
- document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
- document.querySelector('[data-page="invite"]').classList.add("active");
-
- document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
- document.getElementById("invite").classList.add("active");
-
- loadReferralStats();
-});
-
-async function request(action){
- const initData=tg.initData;
-
- if(!initData){
-  statusEl.textContent="Please open inside Telegram.";
-  homeStatusEl.textContent="Open inside Telegram.";
-  return;
- }
-
- mineBtn.disabled=true;
- statusEl.textContent="Loading...";
-
- try{
-  const response=await fetch(API_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "apikey":SUPABASE_KEY
-   },
-   body:JSON.stringify({initData:initData,action:action})
+function respond(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
   });
-
-  const result=await response.json();
-
-  if(!response.ok||!result.success){
-   throw new Error(result.error||"Request failed");
-  }
-
-  const data=result.user;
-  const balance=data.balance??0;
-
-  balanceEl.textContent=balance;
-  mineBalanceEl.textContent=balance;
-  endTime=data.ends_at?new Date(data.ends_at):null;
-
-  if(data.status==="started"){
-   statusEl.textContent="Mining started! 24 hours.";
-  }else if(data.status==="active"){
-   statusEl.textContent="Mining is active.";
-  }else{
-   statusEl.textContent="Mining is inactive. Tap MINE to start.";
-  }
-
-  homeStatusEl.textContent=statusEl.textContent;
-  updateTimer();
-
- }catch(error){
-  console.error(error);
-  statusEl.textContent="Connection error. Please try again.";
-  homeStatusEl.textContent="Connection error.";
- }finally{
-  mineBtn.disabled=false;
- }
 }
 
-function updateTimer(){
- if(!endTime){
-  timerEl.textContent="";
-  return;
- }
-
- const remaining=Math.max(0,endTime-new Date());
-
- if(remaining===0){
-  timerEl.textContent="Mining session completed.";
-  return;
- }
-
- const hours=Math.floor(remaining/3600000);
- const minutes=Math.floor((remaining%3600000)/60000);
-
- timerEl.textContent=`Time remaining: ${hours}h ${minutes}m`;
-}
-
-function makeReferralLink(){
- const user=tg.initDataUnsafe?.user;
- const input=document.getElementById("referralLink");
-
- if(!input)return;
-
- if(!user){
-  input.value="Open inside Telegram to get your link";
-  return;
- }
-
- input.value=`https://t.me/Samadi_Coin_bot?startapp=ref_${user.id}`;
-}
-
-async function copyReferralLink(){
- const input=document.getElementById("referralLink");
-
- if(!input||!input.value.startsWith("https://"))return;
-
- try{
-  await navigator.clipboard.writeText(input.value);
-  alert("Invite link copied!");
- }catch(error){
-  input.select();
-  document.execCommand("copy");
-  alert("Invite link copied!");
- }
-}
-
-function shareReferralLink(){
- const input=document.getElementById("referralLink");
-
- if(!input||!input.value.startsWith("https://"))return;
-
- const message="Join Samadi Coin and earn virtual points with me!";
- const url="https://t.me/share/url?url="+
-  encodeURIComponent(input.value)+
-  "&text="+encodeURIComponent(message);
-
- tg.openTelegramLink(url);
-}
-
-async function registerReferral(){
- if(!tg.initData)return;
-
- try{
-  const response=await fetch(REFERRAL_API_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "apikey":SUPABASE_KEY
-   },
-   body:JSON.stringify({initData:tg.initData,action:"register"})
-  });
-
-  const result=await response.json();
-
-  if(!response.ok){
-   console.error("Referral registration:",result);
-  }
- }catch(error){
-  console.error("Referral registration failed:",error);
- }
-}
-
-async function loadReferralStats(){
- const status=document.getElementById("referralStatus");
-
- if(!tg.initData){
-  status.textContent="Please open inside Telegram.";
-  return;
- }
-
- status.textContent="Loading stats...";
-
- try{
-  const response=await fetch(REFERRAL_API_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "apikey":SUPABASE_KEY
-   },
-   body:JSON.stringify({initData:tg.initData,action:"stats"})
-  });
-
-  const result=await response.json();
-
-  if(!response.ok||!result.success){
-   throw new Error(result.error||"Could not load stats");
-  }
-
-  document.getElementById("invitedFriends").textContent=
-   result.stats.invitedFriends;
-
-  document.getElementById("totalRewards").textContent=
-   result.stats.totalRewards;
-
-  status.textContent="Referral stats updated.";
-
- }catch(error){
-  console.error(error);
-  status.textContent="Could not load stats. Please try again.";
- }
-}
-
-joinGroupBtn.addEventListener("click",()=>{
- tg.openTelegramLink(GROUP_INVITE_LINK);
-});
-
-checkGroupBtn.addEventListener("click",checkGroupMembership);
-
-async function checkGroupMembership(){
- if(!tg.initData){
-  groupTaskStatus.textContent="Please open inside Telegram.";
-  return;
- }
-
- checkGroupBtn.disabled=true;
- groupTaskStatus.textContent="Checking your group membership...";
-
- try{
-  const response=await fetch(TASK_API_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "apikey":SUPABASE_KEY
-   },
-   body:JSON.stringify({
-    initData:tg.initData
-   })
-  });
-
-  const result=await response.json();
-
-  if(!response.ok){
-   throw new Error(result.error||"Membership check failed");
-  }
-
-  if(result.success){
-   groupTaskStatus.textContent=
-    "Success! You received 100 virtual points.";
-
-   await request("status");
-   return;
-  }
-
-  if(result.already_claimed){
-   groupTaskStatus.textContent=
-    "You have already claimed this task reward.";
-
-   await request("status");
-   return;
-  }
-
-  if(result.reason==="not_member"){
-   groupTaskStatus.textContent=
-    "You are not a member yet. Join the group first, then check again.";
-   return;
-  }
-
-  if(result.error){
-   throw new Error(result.error);
-  }
-
-  groupTaskStatus.textContent=
-   "Membership could not be verified. Please try again.";
-
- }catch(error){
-  console.error("Group task error:",error);
-  groupTaskStatus.textContent=
-   "Connection error. Please try again.";
- }finally{
-  checkGroupBtn.disabled=false;
- }
-}
-
-dailyCheckinBtn.addEventListener("click",dailyCheckin);
-
-async function dailyCheckin(){
- if(!tg.initData){
-  dailyCheckinStatus.textContent="Please open inside Telegram.";
-  return;
- }
-
- dailyCheckinBtn.disabled=true;
- dailyCheckinStatus.textContent="Checking daily reward...";
-
- try{
-  const response=await fetch(DAILY_API_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "apikey":SUPABASE_KEY
-   },
-   body:JSON.stringify({
-    initData:tg.initData
-   })
-  });
-
-  const result=await response.json();
-
-  if(!response.ok){
-   throw new Error(result.error||"Daily check-in failed");
-  }
-
-  if(result.success){
-   dailyCheckinStatus.textContent=
-    "Success! You received 50 virtual points today.";
-
-   await request("status");
-   return;
-  }
-
-  if(result.already_claimed ||
-     result.result?.reason==="already_claimed"){
-   dailyCheckinStatus.textContent=
-    "You have already claimed today's reward. Come back tomorrow.";
-   return;
-  }
-
-  if(result.result?.reason==="user_not_found"){
-   dailyCheckinStatus.textContent=
-    "User account not found. Please restart the app.";
-   return;
-  }
-
-  throw new Error(
-   result.error||
-   result.result?.reason||
-   "Could not claim daily reward."
+async function hmacSha256(
+  keyBytes: Uint8Array,
+  message: string,
+): Promise<Uint8Array> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
   );
 
- }catch(error){
-  console.error("Daily check-in error:",error);
-  dailyCheckinStatus.textContent=
-   "Connection error. Please try again.";
- }finally{
-  dailyCheckinBtn.disabled=false;
- }
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(message),
+  );
+
+  return new Uint8Array(signature);
 }
 
-mineBtn.addEventListener("click",()=>request("start"));
+function toHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
 
-makeReferralLink();
-registerReferral();
-request("status");
+async function verifyTelegram(
+  initData: string,
+  botToken: string,
+) {
+  if (!initData || !botToken) {
+    throw new Error("Missing Telegram authentication data");
+  }
 
-setInterval(updateTimer,30000);
-</script>
+  const params = new URLSearchParams(initData);
+  const receivedHash = params.get("hash");
 
-</body>
-</html>
+  if (!receivedHash || !/^[a-f0-9]{64}$/i.test(receivedHash)) {
+    throw new Error("Invalid Telegram hash");
+  }
+
+  const authDate = Number(params.get("auth_date"));
+  const now = Math.floor(Date.now() / 1000);
+
+  if (
+    !Number.isSafeInteger(authDate) ||
+    authDate > now + 60 ||
+    now - authDate > 86400
+  ) {
+    throw new Error("Telegram session expired");
+  }
+
+  const entries = Array.from(params.entries())
+    .filter(([key]) => key !== "hash")
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  const dataCheckString = entries
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+
+  const secretKey = await hmacSha256(
+    new TextEncoder().encode("WebAppData"),
+    botToken,
+  );
+
+  const calculatedHash = toHex(
+    await hmacSha256(secretKey, dataCheckString),
+  );
+
+  const expected = calculatedHash.toLowerCase();
+  const received = receivedHash.toLowerCase();
+
+  if (expected.length !== received.length) {
+    throw new Error("Telegram authentication failed");
+  }
+
+  let mismatch = 0;
+
+  for (let i = 0; i < expected.length; i++) {
+    mismatch |= expected.charCodeAt(i) ^ received.charCodeAt(i);
+  }
+
+  if (mismatch !== 0) {
+    throw new Error("Telegram authentication failed");
+  }
+
+  const userText = params.get("user");
+
+  if (!userText) {
+    throw new Error("Telegram user not found");
+  }
+
+  const telegramUser = JSON.parse(userText);
+
+  if (!telegramUser.id) {
+    throw new Error("Invalid Telegram user");
+  }
+
+  return telegramUser;
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return respond(
+      { success: false, error: "Method not allowed" },
+      405,
+    );
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey =
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+
+    if (!supabaseUrl || !serviceRoleKey || !botToken) {
+      throw new Error("Server configuration is incomplete");
+    }
+
+    const body = await req.json();
+
+    if (
+      typeof body.initData !== "string" ||
+      typeof body.action !== "string"
+    ) {
+      return respond(
+        { success: false, error: "Invalid request body" },
+        400,
+      );
+    }
+
+    const allowedActions = [
+      "start",
+      "status",
+      "claim",
+      "upgrade",
+    ];
+
+    if (!allowedActions.includes(body.action)) {
+      return respond(
+        { success: false, error: "Invalid action" },
+        400,
+      );
+    }
+
+    const telegramUser = await verifyTelegram(
+      body.initData,
+      botToken,
+    );
+
+    const telegramId = Number(telegramUser.id);
+
+    if (
+      !Number.isSafeInteger(telegramId) ||
+      telegramId <= 0
+    ) {
+      throw new Error("Invalid Telegram ID");
+    }
+
+    const supabase = createClient(
+      supabaseUrl,
+      serviceRoleKey,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      },
+    );
+
+    const { error: userError } = await supabase
+      .from("users")
+      .upsert(
+        {
+          telegram_id: telegramId,
+          username: telegramUser.username ?? null,
+          first_name: telegramUser.first_name ?? null,
+        },
+        {
+          onConflict: "telegram_id",
+        },
+      );
+
+    if (userError) {
+      console.error("User upsert error:", userError);
+      throw new Error("Could not register Telegram user");
+    }
+
+    const { data, error } = await supabase.rpc(
+      "samadi_mine_action",
+      {
+        p_telegram_id: telegramId,
+        p_action: body.action,
+      },
+    );
+
+    if (error) {
+      console.error("Mining RPC error:", error);
+      throw new Error("Mining operation failed");
+    }
+
+    if (!data || typeof data !== "object") {
+      throw new Error("Invalid response from mining database");
+    }
+
+    return respond({
+      success: data.success === true,
+      user: data,
+    });
+  } catch (error) {
+    console.error("samadi-mine error:", error);
+
+    return respond(
+      {
+        success: false,
+        error: error instanceof Error
+          ? error.message
+          : "Unexpected server error",
+      },
+      400,
+    );
+  }
+});
