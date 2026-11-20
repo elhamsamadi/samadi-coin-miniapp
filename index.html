@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,29 +6,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Samadi Coin</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;color:#fff;font-family:Arial,sans-serif;background:linear-gradient(rgba(3,12,30,.76),rgba(3,12,30,.94)),url('./file_00000000894c8246bbd07c7ee3cd76f7.png') center/cover fixed;padding:14px 13px 100px;text-align:center}
+body{
+ margin:0;min-height:100vh;color:#fff;font-family:Arial,sans-serif;
+ background:linear-gradient(rgba(3,12,30,.76),rgba(3,12,30,.94)),url('./file_00000000894c8246bbd07c7ee3cd76f7.png') center/cover fixed;
+ padding:14px 13px 100px;text-align:center
+}
 header{padding:7px}
 .logo{width:125px;max-width:45%;margin:5px auto}
 h1{color:#f4c75e;margin:5px}
 .subtitle{color:#b9d5f4}
 .page{display:none;max-width:480px;margin:auto}
 .page.active{display:block}
-.card{margin:15px auto;padding:19px 14px;border-radius:19px;background:rgba(5,20,45,.91);border:1px solid rgba(91,174,255,.45);box-shadow:0 0 20px rgba(0,130,255,.16)}
+.card{
+ margin:15px auto;padding:19px 14px;border-radius:19px;
+ background:rgba(5,20,45,.91);border:1px solid rgba(91,174,255,.45);
+ box-shadow:0 0 20px rgba(0,130,255,.16)
+}
 .balance{font-size:36px;font-weight:bold;color:#f4c75e;margin:13px;overflow-wrap:anywhere}
 button{cursor:pointer}
-.minebtn,.goldbtn{background:linear-gradient(135deg,#f6d36b,#b77a18);color:#071426;border:0;border-radius:12px;padding:14px 24px;font-size:17px;font-weight:bold;width:100%;margin-top:8px}
+.minebtn,.goldbtn{
+ background:linear-gradient(135deg,#f6d36b,#b77a18);color:#071426;
+ border:0;border-radius:12px;padding:14px 24px;font-size:17px;
+ font-weight:bold;width:100%;margin-top:8px
+}
 button:disabled{opacity:.48;cursor:not-allowed}
 #status,#homeStatus{color:#b9d5f4;line-height:1.5}
 #timer{color:#f4c75e;font-size:17px}
 .small{font-size:13px;color:#b9d5f4;line-height:1.5}
-.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:rgba(3,12,29,.98);border-top:1px solid #315b85;padding:8px 2px calc(8px + env(safe-area-inset-bottom));z-index:5}
-.nav button{flex:1;border:0;background:transparent;color:#b9d5f4;font-size:11px;padding:6px 1px}
+.nav{
+ position:fixed;bottom:0;left:0;right:0;display:flex;
+ justify-content:space-around;background:rgba(3,12,29,.98);
+ border-top:1px solid #315b85;padding:8px 2px calc(8px + env(safe-area-inset-bottom));
+ z-index:5
+}
+.nav button{flex:1;border:0;background:transparent;color:#b9d5f4;font-size:10px;padding:6px 1px}
 .nav button.active{color:#f4c75e}
-.nav span{display:block;font-size:20px;margin-bottom:4px}
-.referral-input{width:100%;padding:12px;border-radius:10px;border:1px solid #5485b5;background:#071426;color:white;font-size:13px;margin:10px 0}
-.referral-btn,.task-btn{width:100%;padding:13px;border:0;border-radius:10px;background:linear-gradient(135deg,#f6d36b,#b77a18);color:#071426;font-weight:bold;margin-top:9px}
+.nav span{display:block;font-size:19px;margin-bottom:4px}
+.referral-input{
+ width:100%;padding:12px;border-radius:10px;border:1px solid #5485b5;
+ background:#071426;color:white;font-size:13px;margin:10px 0
+}
+.referral-btn,.task-btn{
+ width:100%;padding:13px;border:0;border-radius:10px;
+ background:linear-gradient(135deg,#f6d36b,#b77a18);
+ color:#071426;font-weight:bold;margin-top:9px
+}
 .stat-number{font-size:29px;font-weight:bold;color:#f4c75e;margin:9px}
 .task-status{color:#b9d5f4;font-size:13px;line-height:1.6;margin-top:12px;min-height:20px}
 .task-reward{color:#f4c75e;font-size:18px;font-weight:bold}
@@ -41,13 +67,13 @@ button:disabled{opacity:.48;cursor:not-allowed}
 .miner{background:#0a2342;border:1px solid #315b85;border-radius:13px;padding:12px}
 .miner.current{border:2px solid #42d68b;background:rgba(16,79,66,.45)}
 .miner.locked{opacity:.76}
-.miner .level{font-weight:bold;color:#f4c75e;font-size:17px}
+.miner .level{font-weight:bold;color:#f4c75e;font-size:16px}
 .miner .rate{font-size:13px;color:#b9d5f4;margin:7px 0}
-.miner .price{font-size:12px;color:#fff}
-.miner button{width:100%;margin-top:9px;padding:9px;border:0;border-radius:8px;background:#e8bd52;color:#071426;font-weight:bold}
+.miner .price{font-size:12px;color:#fff;line-height:1.5}
 .notice{font-size:12px;color:#9eb9d8;line-height:1.5}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -74,31 +100,45 @@ button:disabled{opacity:.48;cursor:not-allowed}
  <div class="card">
   <h2>⛏️ MINING</h2>
   <p class="small" id="onlineState">CHECKING STATUS...</p>
+
   <div class="mining-number" id="mineBalance">0.00000000</div>
   <p class="small">Available balance</p>
+
   <div class="info-grid">
    <div class="info">MINER LEVEL<strong id="levelValue">1</strong></div>
-   <div class="info">MINING RATE<strong id="rateValue">5.0000/day</strong></div>
+   <div class="info">MINING RATE<strong id="rateValue">15.00/day</strong></div>
   </div>
+
   <div class="card">
    <p class="small">UNCLAIMED MINING REWARD</p>
    <div class="mining-number" id="claimable">0.00000000</div>
    <button class="goldbtn" id="claimBtn">CLAIM REWARD</button>
   </div>
+
   <div class="meter"><div id="progressBar"></div></div>
   <p id="timer">No active mining session</p>
+
   <button class="minebtn" id="mine">START MINING</button>
   <p id="status">Connecting...</p>
  </div>
+</section>
+
+<section id="miners" class="page">
  <div class="card">
   <h2>⚡ MINER STORE</h2>
-  <p class="small">Upgrade your miner to increase your daily mining speed.</p>
-  <p>Next upgrade cost: <strong id="nextCost" style="color:#f4c75e">50</strong> points</p>
-  <p class="small" id="upgradeHint">Your next level is waiting.</p>
-  <button class="goldbtn" id="upgradeBtn">UPGRADE MINER</button>
+  <p class="small">Your miner level increases automatically as you mine gems.</p>
+
+  <p>YOUR CURRENT LEVEL</p>
+  <div class="balance" id="minerLevelDisplay">1</div>
+
+  <p class="small">TOTAL GEMS MINED</p>
+  <div class="mining-number" id="totalMinedDisplay">0.00000000</div>
+
   <h3>Miner Levels</h3>
   <div class="store-grid" id="minerStore"></div>
+
   <button class="referral-btn" id="moreLevelsBtn">SHOW MORE LEVELS</button>
+  <p class="notice">Miner levels are automatic. No upgrade payment is required.</p>
  </div>
 </section>
 
@@ -106,6 +146,7 @@ button:disabled{opacity:.48;cursor:not-allowed}
  <div class="card">
   <h2>🎯 TASKS</h2>
   <p class="small">Complete tasks and earn virtual points.</p>
+
   <div class="card">
    <h3>👥 Join Samadi Coin Support</h3>
    <p class="small">Join our official Telegram group and verify your membership.</p>
@@ -114,6 +155,7 @@ button:disabled{opacity:.48;cursor:not-allowed}
    <button class="task-btn" id="checkGroupBtn">CHECK MEMBERSHIP & CLAIM</button>
    <p class="task-status" id="groupTaskStatus">Join the group first, then check your membership.</p>
   </div>
+
   <div class="card">
    <h3>📅 Daily Check-in</h3>
    <p class="small">Check in every day and earn virtual points.</p>
@@ -121,11 +163,13 @@ button:disabled{opacity:.48;cursor:not-allowed}
    <button class="task-btn" id="dailyCheckinBtn">CLAIM DAILY REWARD</button>
    <p class="task-status" id="dailyCheckinStatus">Claim your daily reward once every day.</p>
   </div>
+
   <div class="card">
    <h3>👥 Invite Friends</h3>
    <p class="small">Invite friends and earn 100 points for each successful referral.</p>
    <button class="task-btn" id="goInviteBtn">GO TO INVITE</button>
   </div>
+
   <p class="small">All points are virtual. They are not cash or withdrawable tokens.</p>
  </div>
 </section>
@@ -134,12 +178,14 @@ button:disabled{opacity:.48;cursor:not-allowed}
  <div class="card">
   <h2>👥 INVITE FRIENDS</h2>
   <p>Invite friends and earn 100 points for each successful referral.</p>
+
   <div class="card">
    <h3>Your Referral Link</h3>
    <input id="referralLink" class="referral-input" type="text" readonly value="Loading...">
    <button class="referral-btn" id="copyLinkBtn">📋 COPY INVITE LINK</button>
    <button class="referral-btn" id="shareLinkBtn">📤 SHARE WITH FRIENDS</button>
   </div>
+
   <div class="card">
    <h3>👥 INVITED FRIENDS</h3>
    <div class="stat-number" id="invitedFriends">0</div>
@@ -150,6 +196,7 @@ button:disabled{opacity:.48;cursor:not-allowed}
    <button class="referral-btn" id="refreshStatsBtn">🔄 REFRESH STATS</button>
    <p id="referralStatus" class="small">Loading referral stats...</p>
   </div>
+
   <p class="small">Reward: 100 virtual points for each new successful referral.</p>
   <p class="small">Points are virtual and are not cash or withdrawable tokens.</p>
  </div>
@@ -160,17 +207,22 @@ button:disabled{opacity:.48;cursor:not-allowed}
   <h2>💎 WALLET</h2>
   <p>TON wallet integration is coming soon.</p>
   <p class="small">Withdrawals are not active yet.</p>
+  <p class="notice">Your current points are virtual Samadi Points.</p>
  </div>
 </section>
 
 <nav class="nav">
  <button class="active" data-page="home"><span>🏠</span>Home</button>
  <button data-page="mining"><span>⛏️</span>Mining</button>
+ <button data-page="miners"><span>⚡</span>Miners</button>
  <button data-page="tasks"><span>🎯</span>Tasks</button>
  <button data-page="invite"><span>👥</span>Invite</button>
  <button data-page="wallet"><span>💎</span>Wallet</button>
 </nav>
+
 <script>
+"use strict";
+
 const API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-mine";
 const REFERRAL_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-referral";
 const TASK_API_URL="https://gbcdoerqhhfinmojqumk.supabase.co/functions/v1/samadi-join-group";
@@ -186,13 +238,89 @@ const $=id=>document.getElementById(id);
 
 let endTime=null;
 let sessionStart=null;
-let sessionRate=0;
+let sessionRate=15;
 let claimableAmount=0;
 let serverSnapshot=Date.now();
 let snapshotClaimable=0;
 let minerLevel=1;
-let displayedLevels=10;
+let totalMined=0;
+let displayedLevels=3;
 let busy=false;
+
+function num(v){
+ const n=Number(v);
+ return Number.isFinite(n)?n:0;
+}
+
+function fmt(v){
+ return num(v).toFixed(8);
+}
+
+function userData(result){
+ if(result.user)return result.user;
+ if(result.data?.user)return result.data.user;
+ if(result.data&&typeof result.data==="object")return result.data;
+ return result;
+}
+
+function setBalance(v){
+ $("balance").textContent=fmt(v);
+ $("mineBalance").textContent=fmt(v);
+}
+
+function dailyRate(level){
+ level=Math.max(1,num(level));
+
+ if(level<=10)return 15+(level-1)*5/9;
+ if(level<=20)return 20+(level-10)*5/10;
+ if(level<=50)return 25+(level-20)*15/30;
+ if(level<=100)return 40+(level-50)*25/50;
+ if(level<=131)return 65+(level-100)*15/31;
+ if(level<=200)return 80+(level-131)*20/69;
+ if(level<=300)return 100+(level-200)*25/100;
+ if(level<=500)return 125+(level-300)*50/200;
+
+ return 175+(level-500)*0.5;
+}
+
+function renderStore(){
+ const box=$("minerStore");
+ if(!box)return;
+
+ box.innerHTML="";
+ $("minerLevelDisplay").textContent=minerLevel;
+ $("totalMinedDisplay").textContent=fmt(totalMined);
+
+ const end=minerLevel+displayedLevels;
+
+ for(let level=minerLevel;level<=end;level++){
+  const current=level===minerLevel;
+  const required=level===1?0:(level*20-10);
+
+  const card=document.createElement("div");
+  card.className="miner "+(current?"current":"locked");
+
+  card.innerHTML=`
+   <div class="level">
+    ${current?"✓ ":"🔒 "}Miner Level ${level}
+   </div>
+   <div class="rate">
+    ${dailyRate(level).toFixed(2)} Gems / 24 Hours
+   </div>
+   <div class="price">
+    ${current?"CURRENT MINER":
+      "Unlock at "+required.toLocaleString()+" mined gems"}
+   </div>
+  `;
+
+  box.appendChild(card);
+ }
+}
+
+$("moreLevelsBtn").addEventListener("click",()=>{
+ displayedLevels+=3;
+ renderStore();
+});
 
 document.querySelectorAll(".nav button").forEach(btn=>{
  btn.addEventListener("click",()=>showPage(btn.dataset.page));
@@ -208,87 +336,10 @@ function showPage(page){
  });
 
  if(page==="invite")loadReferralStats();
- if(page==="mining")request("status");
+ if(page==="mining"||page==="miners")request("status");
 }
 
 $("goInviteBtn").addEventListener("click",()=>showPage("invite"));
-
-function num(v){
- const n=Number(v);
- return Number.isFinite(n)?n:0;
-}
-
-function fmt(v){
- return num(v).toFixed(8);
-}
-
-function userData(result){
- return result.user||result.data?.user||result.data||result;
-}
-
-function setBalance(v){
- $("balance").textContent=fmt(v);
- $("mineBalance").textContent=fmt(v);
-}
-
-function dailyRate(level){
- return 5+(Math.max(1,num(level))-1)*(145/199);
-}
-
-function renderStore(){
- const box=$("minerStore");
- box.innerHTML="";
-
- const start=Math.max(1,minerLevel-2);
- const end=Math.min(
-  minerLevel+displayedLevels-1,
-  minerLevel+199
- );
-
- for(let level=start;level<=end;level++){
-  const current=level===minerLevel;
-  const locked=level>minerLevel;
-
-  const card=document.createElement("div");
-  card.className="miner "+(
-   current?"current":locked?"locked":""
-  );
-
-  const rate=dailyRate(level);
-  const cost=level*50;
-
-  card.innerHTML=`
-   <div class="level">
-    ${current?"✓ ":""}Miner Level ${level}
-   </div>
-   <div class="rate">
-    ${rate.toFixed(4)} points / day
-   </div>
-   <div class="price">
-    ${current?"CURRENT MINER":
-      locked?"🔒 Unlock cost: "+cost+" points":"Unlocked"}
-   </div>
-  `;
-
-  if(current){
-   const tag=document.createElement("div");
-   tag.className="small";
-   tag.textContent="Your active miner";
-   card.appendChild(tag);
-  }
-
-  box.appendChild(card);
- }
-
- $("nextCost").textContent=(minerLevel*50).toLocaleString();
- $("upgradeHint").textContent=
-  `Upgrade from Level ${minerLevel} to Level ${minerLevel+1}.`;
-}
-
-$("moreLevelsBtn").addEventListener("click",()=>{
- displayedLevels+=10;
- renderStore();
-});
 
 async function request(action){
  if(!tg.initData){
@@ -302,7 +353,6 @@ async function request(action){
  busy=true;
  $("mine").disabled=true;
  $("claimBtn").disabled=true;
- $("upgradeBtn").disabled=true;
  $("status").textContent="Please wait...";
 
  try{
@@ -321,9 +371,7 @@ async function request(action){
   const result=await response.json();
 
   if(!response.ok||result.success===false){
-   throw new Error(
-    result.error||result.message||"Request failed"
-   );
+   throw new Error(result.error||result.message||"Request failed");
   }
 
   const data=userData(result);
@@ -331,12 +379,11 @@ async function request(action){
   const bal=data.balance??result.balance??0;
   setBalance(bal);
 
-  minerLevel=Math.max(
-   1,
-   Math.floor(num(
-    data.miner_level??data.level??result.miner_level??1
-   ))
-  );
+  minerLevel=Math.max(1,Math.floor(num(
+   data.miner_level??data.level??result.miner_level??1
+  )));
+
+  totalMined=num(data.total_mined??result.total_mined??totalMined);
 
   sessionRate=num(
    data.daily_rate??data.mining_rate??result.daily_rate
@@ -355,65 +402,67 @@ async function request(action){
   const ends=
    data.ends_at??
    data.mining_ends_at??
-   data.end_time??null;
+   data.end_time??
+   result.ends_at??
+   result.mining_ends_at??
+   null;
 
   endTime=ends?new Date(ends):null;
+  if(endTime&&!Number.isFinite(endTime.getTime()))endTime=null;
 
   const starts=
    data.started_at??
-   data.mining_started_at??null;
+   data.mining_started_at??
+   result.started_at??
+   null;
 
   sessionStart=starts?new Date(starts):null;
+  if(sessionStart&&!Number.isFinite(sessionStart.getTime()))sessionStart=null;
 
   $("levelValue").textContent=minerLevel;
-  $("rateValue").textContent=
-   sessionRate.toFixed(4)+"/day";
-
+  $("rateValue").textContent=sessionRate.toFixed(2)+"/day";
   $("claimable").textContent=fmt(claimableAmount);
   $("onlineState").textContent="🟢 ONLINE";
 
-  const state=String(
-   data.status??result.status??""
-  ).toLowerCase();
+  const state=String(data.status??result.status??"").toLowerCase();
+  const active=endTime&&endTime.getTime()>Date.now();
 
   if(action==="start"||state==="started"){
-   $("status").textContent=
-    "Mining started! Your 24-hour session is active.";
-  }else if(endTime&&endTime.getTime()>Date.now()){
-   $("status").textContent=
-    "Mining is active. Your rewards are accumulating.";
+   $("status").textContent="Mining started! Your 24-hour session is active.";
+  }else if(active){
+   $("status").textContent="Mining is active. Your rewards are accumulating.";
+  }else if(state==="completed"||claimableAmount>0){
+   $("status").textContent="Mining session completed. Claim your available reward.";
   }else{
-   $("status").textContent=
-    "Mining is inactive. Tap START MINING to begin.";
+   $("status").textContent="Mining is inactive. Tap START MINING to begin.";
   }
 
   if(action==="claim"){
-   $("status").textContent=
-    "Claim request completed. Mining continues if your session is active.";
-  }
-
-  if(action==="upgrade"){
-   $("status").textContent=
-    "Upgrade request completed.";
+   $("status").textContent=active
+    ?"Reward claimed! Your current mining session continues."
+    :"Reward claimed! Your next 24-hour mining session has started.";
   }
 
   $("homeStatus").textContent=$("status").textContent;
+
+  $("mine").disabled=!!active;
+  $("mine").textContent=active?"MINING ACTIVE":"START MINING";
 
   renderStore();
   updateMiningDisplay();
 
  }catch(err){
   console.error(err);
-  $("status").textContent=
-   "Error: "+(err.message||"Please try again");
-  $("homeStatus").textContent=
-   "Could not connect. Please retry.";
-
+  $("status").textContent="Error: "+(err.message||"Please try again");
+  $("homeStatus").textContent="Could not connect. Please retry.";
  }finally{
   busy=false;
-  $("mine").disabled=false;
   $("claimBtn").disabled=false;
-  $("upgradeBtn").disabled=false;
+
+  if(!endTime||endTime.getTime()<=Date.now()){
+   $("mine").disabled=false;
+   $("mine").textContent="START MINING";
+  }
  }
 }
 
@@ -422,41 +471,32 @@ $("mine").addEventListener("click",()=>{
 });
 
 $("claimBtn").addEventListener("click",async()=>{
+ if(busy)return;
+
  if(claimableAmount<=0){
-  $("status").textContent=
-   "There is no reward available to claim yet.";
+  $("status").textContent="There is no reward available to claim yet.";
   return;
  }
 
  await request("claim");
 });
 
-$("upgradeBtn").addEventListener("click",async()=>{
- if(!confirm(
-  `Upgrade to Level ${minerLevel+1} for ${minerLevel*50} points?`
- ))return;
-
- await request("upgrade");
-});
-
 function updateMiningDisplay(){
  let amount=snapshotClaimable;
 
  if(endTime&&endTime.getTime()>Date.now()&&sessionRate>0){
-  const elapsed=Math.max(
-   0,
-   (Date.now()-serverSnapshot)/1000
-  );
-
+  const elapsed=Math.max(0,(Date.now()-serverSnapshot)/1000);
   amount+=Math.min(elapsed,86400)*sessionRate/86400;
  }
 
-claimableAmount=amount;
-$("claimable").textContent=fmt(amount);
+ claimableAmount=amount;
+ $("claimable").textContent=fmt(amount);
 
  if(!endTime){
   $("timer").textContent="No active mining session";
   $("progressBar").style.width="0%";
+  $("mine").disabled=false;
+  $("mine").textContent="START MINING";
   return;
  }
 
@@ -465,25 +505,15 @@ $("claimable").textContent=fmt(amount);
  const remaining=Math.max(0,end-now);
 
  if(sessionStart){
-  const total=Math.max(
-   1,
-   end-sessionStart.getTime()
-  );
-
-  const progress=Math.min(
-   100,
-   Math.max(
-    0,
-    (now-sessionStart.getTime())/total*100
-   )
-  );
-
+  const total=Math.max(1,end-sessionStart.getTime());
+  const progress=Math.min(100,Math.max(0,(now-sessionStart.getTime())/total*100));
   $("progressBar").style.width=progress+"%";
  }
 
  if(remaining<=0){
-  $("timer").textContent=
-   "Mining session completed. Claim any available reward.";
+  $("timer").textContent="Mining session completed. Claim your available reward.";
+  $("mine").disabled=false;
+  $("mine").textContent="SESSION COMPLETED";
   return;
  }
 
@@ -491,14 +521,15 @@ $("claimable").textContent=fmt(amount);
  const m=Math.floor(remaining%3600000/60000);
  const s=Math.floor(remaining%60000/1000);
 
- $("timer").textContent=
-  `Time remaining: ${h}h ${m}m ${s}s`;
+ $("timer").textContent=`Time remaining: ${h}h ${m}m ${s}s`;
+ $("mine").disabled=true;
+ $("mine").textContent="MINING ACTIVE";
 }
-  setInterval(updateMiningDisplay,1000);
 
-// Update mining information from server every minute
+setInterval(updateMiningDisplay,1000);
+
 setInterval(()=>{
- if(tg.initData)request("status");
+ if(tg.initData&&!busy)request("status");
 },60000);
 
 function makeReferralLink(){
@@ -511,7 +542,6 @@ function makeReferralLink(){
 
 $("copyLinkBtn").addEventListener("click",async()=>{
  const value=$("referralLink").value;
-
  if(!value.startsWith("https://"))return;
 
  try{
@@ -526,16 +556,11 @@ $("copyLinkBtn").addEventListener("click",async()=>{
 
 $("shareLinkBtn").addEventListener("click",()=>{
  const value=$("referralLink").value;
-
  if(!value.startsWith("https://"))return;
 
- const url=
-  "https://t.me/share/url?url="+
+ const url="https://t.me/share/url?url="+
   encodeURIComponent(value)+
-  "&text="+
-  encodeURIComponent(
-   "Join Samadi Coin and earn virtual points with me!"
-  );
+  "&text="+encodeURIComponent("Join Samadi Coin and earn virtual points with me!");
 
  tg.openTelegramLink(url);
 });
@@ -558,10 +583,7 @@ async function registerReferral(){
 
   const result=await response.json();
 
-  if(!response.ok){
-   console.error("Referral registration",result);
-  }
-
+  if(!response.ok)console.error("Referral registration",result);
  }catch(error){
   console.error("Referral registration failed",error);
  }
@@ -571,8 +593,7 @@ async function loadReferralStats(){
  $("referralStatus").textContent="Loading stats...";
 
  if(!tg.initData){
-  $("referralStatus").textContent=
-   "Please open inside Telegram.";
+  $("referralStatus").textContent="Please open inside Telegram.";
   return;
  }
 
@@ -592,53 +613,35 @@ async function loadReferralStats(){
   const result=await response.json();
 
   if(!response.ok||!result.success){
-   throw new Error(
-    result.error||"Could not load stats"
-   );
+   throw new Error(result.error||"Could not load stats");
   }
 
-  $("invitedFriends").textContent=
-   result.stats?.invitedFriends??0;
-
-  $("totalRewards").textContent=
-   result.stats?.totalRewards??0;
-
-  $("referralStatus").textContent=
-   "Referral stats updated.";
+  $("invitedFriends").textContent=result.stats?.invitedFriends??0;
+  $("totalRewards").textContent=result.stats?.totalRewards??0;
+  $("referralStatus").textContent="Referral stats updated.";
 
  }catch(error){
   console.error(error);
-
-  $("referralStatus").textContent=
-   "Could not load stats. Please try again.";
+  $("referralStatus").textContent="Could not load stats. Please try again.";
  }
 }
 
-$("refreshStatsBtn").addEventListener(
- "click",
- loadReferralStats
-);
+$("refreshStatsBtn").addEventListener("click",loadReferralStats);
 
 $("joinGroupBtn").addEventListener("click",()=>{
  tg.openTelegramLink(GROUP_INVITE_LINK);
 });
 
-$("checkGroupBtn").addEventListener(
- "click",
- checkGroupMembership
-);
+$("checkGroupBtn").addEventListener("click",checkGroupMembership);
 
 async function checkGroupMembership(){
  if(!tg.initData){
-  $("groupTaskStatus").textContent=
-   "Please open inside Telegram.";
+  $("groupTaskStatus").textContent="Please open inside Telegram.";
   return;
  }
 
  $("checkGroupBtn").disabled=true;
-
- $("groupTaskStatus").textContent=
-  "Checking your group membership...";
+ $("groupTaskStatus").textContent="Checking your group membership...";
 
  try{
   const response=await fetch(TASK_API_URL,{
@@ -647,71 +650,48 @@ async function checkGroupMembership(){
     "Content-Type":"application/json",
     "apikey":SUPABASE_KEY
    },
-   body:JSON.stringify({
-    initData:tg.initData
-   })
+   body:JSON.stringify({initData:tg.initData})
   });
 
   const result=await response.json();
 
   if(!response.ok){
-   throw new Error(
-    result.error||"Membership check failed"
-   );
+   throw new Error(result.error||"Membership check failed");
   }
 
   if(result.success){
-   $("groupTaskStatus").textContent=
-    "Success! You received 100 virtual points.";
-  }
-  else if(result.already_claimed){
-   $("groupTaskStatus").textContent=
-    "You have already claimed this task reward.";
-  }
-  else if(result.reason==="not_member"){
-   $("groupTaskStatus").textContent=
-    "You are not a member yet. Join the group first, then check again.";
+   $("groupTaskStatus").textContent="Success! You received 100 virtual points.";
+  }else if(result.already_claimed){
+   $("groupTaskStatus").textContent="You have already claimed this task reward.";
+  }else if(result.reason==="not_member"){
+   $("groupTaskStatus").textContent="You are not a member yet. Join the group first, then check again.";
    return;
-  }
-  else if(result.error){
+  }else if(result.error){
    throw new Error(result.error);
-  }
-  else{
-   $("groupTaskStatus").textContent=
-    "Membership could not be verified. Please try again.";
+  }else{
+   $("groupTaskStatus").textContent="Membership could not be verified. Please try again.";
   }
 
-  if(result.success||result.already_claimed){
-   await request("status");
-  }
+  if(result.success||result.already_claimed)await request("status");
 
  }catch(error){
   console.error(error);
-
-  $("groupTaskStatus").textContent=
-   "Connection error. Please try again.";
-
+  $("groupTaskStatus").textContent="Connection error. Please try again.";
  }finally{
   $("checkGroupBtn").disabled=false;
  }
 }
 
-$("dailyCheckinBtn").addEventListener(
- "click",
- dailyCheckin
-);
+$("dailyCheckinBtn").addEventListener("click",dailyCheckin);
 
 async function dailyCheckin(){
  if(!tg.initData){
-  $("dailyCheckinStatus").textContent=
-   "Please open inside Telegram.";
+  $("dailyCheckinStatus").textContent="Please open inside Telegram.";
   return;
  }
 
  $("dailyCheckinBtn").disabled=true;
-
- $("dailyCheckinStatus").textContent=
-  "Checking daily reward...";
+ $("dailyCheckinStatus").textContent="Checking daily reward...";
 
  try{
   const response=await fetch(DAILY_API_URL,{
@@ -720,54 +700,36 @@ async function dailyCheckin(){
     "Content-Type":"application/json",
     "apikey":SUPABASE_KEY
    },
-   body:JSON.stringify({
-    initData:tg.initData
-   })
+   body:JSON.stringify({initData:tg.initData})
   });
 
   const result=await response.json();
 
   if(!response.ok){
-   throw new Error(
-    result.error||"Daily check-in failed"
-   );
+   throw new Error(result.error||"Daily check-in failed");
   }
 
   if(result.success){
-   $("dailyCheckinStatus").textContent=
-    "Success! You received 50 virtual points today.";
-
+   $("dailyCheckinStatus").textContent="Success! You received 50 virtual points today.";
    await request("status");
    return;
   }
 
-  if(
-   result.already_claimed||
-   result.result?.reason==="already_claimed"
-  ){
-   $("dailyCheckinStatus").textContent=
-    "You have already claimed today's reward. Come back tomorrow.";
+  if(result.already_claimed||result.result?.reason==="already_claimed"){
+   $("dailyCheckinStatus").textContent="You have already claimed today's reward. Come back tomorrow.";
    return;
   }
 
   if(result.result?.reason==="user_not_found"){
-   $("dailyCheckinStatus").textContent=
-    "User account not found. Please restart the app.";
+   $("dailyCheckinStatus").textContent="User account not found. Please restart the app.";
    return;
   }
 
-  throw new Error(
-   result.error||
-   result.result?.reason||
-   "Could not claim daily reward."
-  );
+  throw new Error(result.error||result.result?.reason||"Could not claim daily reward.");
 
  }catch(error){
   console.error(error);
-
-  $("dailyCheckinStatus").textContent=
-   "Connection error: "+(error.message||"Please try again");
-
+  $("dailyCheckinStatus").textContent="Connection error: "+(error.message||"Please try again");
  }finally{
   $("dailyCheckinBtn").disabled=false;
  }
