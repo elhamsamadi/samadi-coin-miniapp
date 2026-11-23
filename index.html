@@ -157,13 +157,26 @@ button:disabled{opacity:.48;cursor:not-allowed}
   </div>
 
   <div class="card">
-   <h3>📅 Daily Check-in</h3>
-   <p class="small">Check in every day and earn virtual points.</p>
-   <p class="task-reward">+50 Points Daily</p>
-   <button class="task-btn" id="dailyCheckinBtn">CLAIM DAILY REWARD</button>
-   <p class="task-status" id="dailyCheckinStatus">Claim your daily reward once every day.</p>
+  <h3>📅 7-Day Daily Check-in</h3>
+  <p class="small">Claim one reward every 24 hours.</p>
+  <p class="task-reward">Complete 7 days and earn 50 gems!</p>
+
+  <div id="dailyCheckinDays"
+       style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:15px 0;">
   </div>
 
+  <p class="small" style="color:#e0a33a;">
+    ⚠️ If you miss the 24-hour claim window, your progress resets to Day 1.
+  </p>
+
+  <button class="task-btn" id="dailyCheckinBtn">
+    CLAIM DAILY REWARD
+  </button>
+
+  <p class="task-status" id="dailyCheckinStatus">
+    Loading daily check-in...
+  </p>
+</div>
   <div class="card">
    <h3>👥 Invite Friends</h3>
    <p class="small">Invite friends and earn 100 points for each successful referral.</p>
@@ -682,65 +695,233 @@ async function checkGroupMembership(){
  }
 }
 
-$("dailyCheckinBtn").addEventListener("click",dailyCheckin);
 
-async function dailyCheckin(){
- if(!tg.initData){
-  $("dailyCheckinStatus").textContent="Please open inside Telegram.";
-  return;
- }
+const dailyRewards = [5, 10, 15, 20, 30, 40, 50];
+let dailyNextAvailableAt = null;
+let dailyAvailable = false;
+let dailyRefreshPending = false;
 
- $("dailyCheckinBtn").disabled=true;
- $("dailyCheckinStatus").textContent="Checking daily reward...";
+$("dailyCheckinBtn").addEventListener("click", dailyCheckin);
 
- try{
-  const response=await fetch(DAILY_API_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "apikey":SUPABASE_KEY
-   },
-   body:JSON.stringify({initData:tg.initData})
+function renderDailyCheckin(data) {
+  const container = $("dailyCheckinDays");
+  container.innerHTML = "";
+
+  const lastDay = Number(data.last_claimed_day || 0);
+  const nextDay = Number(data.day_to_claim || 1);
+
+  const reset = data.reset_pending === true ||
+    (lastDay >= 7 && data.available === true && nextDay === 1);
+
+  dailyRewards.forEach((reward, index) => {
+    const day = index + 1;
+    const completed = !reset && day <= lastDay;
+    const current = day === nextDay && !completed;
+
+    const box = document.createElement("div");
+
+    box.style.cssText =
+      "padding:12px 4px;border-radius:12px;text-align:center;" +
+      "background:" + (completed ? "#164b32" :
+      current ? "#423512" : "#142c49") + ";" +
+      "border:" + (current ? "2px solid #f4c75e" :
+      "1px solid #315b85") + ";";
+
+    const heading = document.createElement("div");
+    heading.textContent = "DAY " + day;
+    heading.style.cssText =
+      "font-weight:bold;font-size:13px;margin-bottom:7px;";
+
+    const amount = document.createElement("div");
+    amount.textContent = "+" + reward + " 💎";
+    amount.style.cssText =
+      "color:#f4c75e;font-weight:bold;font-size:14px;";
+
+    const state = document.createElement("div");
+    state.textContent = completed ? "✓" : current ? "🎁" : "🔒";
+    state.style.marginTop = "6px";
+
+    box.append(heading, amount, state);
+    container.appendChild(box);
   });
 
-  const result=await response.json();
+  const status = $("dailyCheckinStatus");
 
-  if(!response.ok){
-   throw new Error(result.error||"Daily check-in failed");
+  if (data.reset_pending) {
+    status.textContent =
+      "Your streak expired. Claim Day 1 to start again.";
+  } else if (data.available) {
+    status.textContent =
+      "Day " + nextDay + " is ready! Reward: " +
+      dailyRewards[nextDay - 1] + " gems.";
+  } else {
+    status.textContent =
+      "Your next reward is not ready yet.";
   }
-
-  if(result.success){
-   $("dailyCheckinStatus").textContent="Success! You received 50 virtual points today.";
-   await request("status");
-   return;
-  }
-
-  if(result.already_claimed||result.result?.reason==="already_claimed"){
-   $("dailyCheckinStatus").textContent="You have already claimed today's reward. Come back tomorrow.";
-   return;
-  }
-
-  if(result.result?.reason==="user_not_found"){
-   $("dailyCheckinStatus").textContent="User account not found. Please restart the app.";
-   return;
-  }
-
-  throw new Error(result.error||result.result?.reason||"Could not claim daily reward.");
-
- }catch(error){
-  console.error(error);
-  $("dailyCheckinStatus").textContent="Connection error: "+(error.message||"Please try again");
- }finally{
-  $("dailyCheckinBtn").disabled=false;
- }
 }
+
+async function loadDailyCheckinStatus() {
+  const button = $("dailyCheckinBtn");
+  const status = $("dailyCheckinStatus");
+
+  if (!tg.initData) {
+    button.disabled = true;
+    status.textContent = "Please open inside Telegram.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Loading daily rewards...";
+
+  try {
+    const response = await fetch(DAILY_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY
+      },
+      body: JSON.stringify({
+        initData: tg.initData,
+        action: "status"
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Could not load rewards");
+    }
+
+    dailyAvailable = data.available === true;
+    dailyNextAvailableAt = data.next_available_at || null;
+    dailyRefreshPending = false;
+
+    renderDailyCheckin(data);
+    updateDailyCheckinButton();
+
+  } catch (error) {
+    console.error(error);
+    status.textContent =
+      "Could not load daily rewards. Please retry.";
+    button.disabled = true;
+  }
+}
+
+function updateDailyCheckinButton() {
+  const button = $("dailyCheckinBtn");
+
+  if (dailyAvailable) {
+    button.disabled = false;
+    button.textContent = "CLAIM DAY REWARD";
+    return;
+  }
+
+  const remaining = dailyNextAvailableAt
+    ? new Date(dailyNextAvailableAt).getTime() - Date.now()
+    : 0;
+
+  if (remaining > 0) {
+    const hours = Math.floor(remaining / 3600000);
+    const minutes = Math.floor(remaining % 3600000 / 60000);
+    const seconds = Math.floor(remaining % 60000 / 1000);
+
+    button.disabled = true;
+    button.textContent =
+      `NEXT REWARD IN ${hours}h ${minutes}m ${seconds}s`;
+
+    dailyRefreshPending = false;
+  } else {
+    button.disabled = true;
+    button.textContent = "CHECKING REWARD...";
+
+    if (!dailyRefreshPending) {
+      dailyRefreshPending = true;
+      loadDailyCheckinStatus();
+    }
+  }
+}
+
+async function dailyCheckin() {
+  const button = $("dailyCheckinBtn");
+  const status = $("dailyCheckinStatus");
+
+  if (!tg.initData || !dailyAvailable) return;
+
+  button.disabled = true;
+  status.textContent = "Claiming your daily reward...";
+
+  try {
+    const response = await fetch(DAILY_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY
+      },
+      body: JSON.stringify({
+        initData: tg.initData,
+        action: "claim"
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Daily check-in failed");
+    }
+
+    if (data.success) {
+      const reward = Number(data.reward || data.result?.reward || 0);
+      const day = Number(data.result?.day || data.day || 0);
+
+      status.textContent =
+        "Success! Day " + day + ": You received " +
+        reward + " gems.";
+
+      await request("status");
+      await loadDailyCheckinStatus();
+      return;
+    }
+
+    if (
+      data.already_claimed ||
+      data.result?.reason === "cooldown"
+    ) {
+      status.textContent =
+        "You already claimed this reward. Please wait.";
+
+      await loadDailyCheckinStatus();
+      return;
+    }
+
+    if (data.result?.reason === "user_not_found") {
+      status.textContent =
+        "User account not found. Please restart the app.";
+      return;
+    }
+
+    throw new Error(
+      data.error || data.result?.reason || "Could not claim reward."
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    status.textContent =
+      "Connection error: " +
+      (error.message || "Please try again");
+
+    await loadDailyCheckinStatus();
+  }
+}
+
+setInterval(updateDailyCheckinButton, 1000);
 
 // Start application
 makeReferralLink();
 renderStore();
 registerReferral();
 request("status");
-
+loadDailyCheckinStatus();
 </script>
 </body>
 </html>
